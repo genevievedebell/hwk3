@@ -13,8 +13,7 @@ pacman::p_load(tidyverse, ggplot2, dplyr, lubridate, stringr, readxl, data.table
 
 
 cig.data <- read_csv("data/input/CDC_1970-2019.csv", col_names = TRUE)
-cpi.data <- read_xlsx("data/input/historical-cpi-u-202501.xlsx", skip = 11, col_names = FALSE)
-
+cpi.data <- read_xlsx("data/input/historical-cpi-u-202501.xlsx", skip = 3, col_names = TRUE)
 
 # Clean tobacco data --------------------------------------------------------------
 cig.data <- cig.data %>%
@@ -38,8 +37,11 @@ final.data <- pivot_wider(cig.data,
                          values_from = "value") %>%
   arrange(state, Year)
 
-
 # Clean CPI data ----------------------------------------------------------
+cpi.data <- cpi.data %>%
+  mutate(across(c("Jan.", "Feb.", "Mar.", "Apr.", "May", "Jun.", 
+                  "Jul.", "Aug.", "Sep.", "Oct.", "Nov.", "Dec."), 
+                as.numeric))
 cpi.data <- pivot_longer(cpi.data, 
                          cols=c("Jan.","Feb.","Mar.","Apr.","May","Jun.","Jul.","Aug.","Sep.","Oct.","Nov.","Dec."),
                          names_to="month",
@@ -47,11 +49,16 @@ cpi.data <- pivot_longer(cpi.data,
 cpi.data <- cpi.data %>%
   group_by(Year) %>%
   summarize(index=mean(index, na.rm=TRUE))
-names(cpi.data)
 
 
 # Form final dataset ------------------------------------------------------
 # adjust to 2010 dollars
+final.data <- final.data %>%
+  mutate(Year = as.integer(Year))
+
+cpi.data <- cpi.data %>%
+  mutate(Year = as.integer(Year))
+
 final.data <- final.data %>%
   left_join(cpi.data, by="Year") %>%
   mutate(price_cpi=cost_per_pack*(218/index))
