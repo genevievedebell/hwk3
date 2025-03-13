@@ -120,3 +120,72 @@ ggplot(sales_data, aes(x = Year, y = sales_per_capita, color = state)) +
        color = "State") +
   theme_minimal()
 
+# 5. Compare the trends in sales from the 5 states with the highest price increases to those with the lowest price increases.
+
+## Filter sales data for the top 5 and bottom 5 states
+sales_data_top <- final.data %>%
+  filter(state %in% top_5_states, Year >= 1970 & Year <= 2018) %>%
+  group_by(Year) %>%
+  summarize(avg_sales_top = mean(sales_per_capita, na.rm = TRUE))
+
+sales_data_bottom <- final.data %>%
+  filter(state %in% bottom_5_states, Year >= 1970 & Year <= 2018) %>%
+  group_by(Year) %>%
+  summarize(avg_sales_bottom = mean(sales_per_capita, na.rm = TRUE))
+
+## Merge datasets for plotting
+sales_comparison <- left_join(sales_data_top, sales_data_bottom, by = "Year")
+
+## Plot the trends for both groups
+ggplot(sales_comparison, aes(x = Year)) +
+  geom_line(aes(y = avg_sales_top, color = "Top 5 States (Highest Price Increase)"), size = 1.2) +
+  geom_line(aes(y = avg_sales_bottom, color = "Bottom 5 States (Lowest Price Increase)"), size = 1.2) +
+  labs(title = "Comparison of Cigarette Sales in States with High vs. Low Price Increases",
+       subtitle = "Average Packs Sold Per Capita (1970-2018)",
+       x = "Year",
+       y = "Packs Sold Per Capita",
+       color = "State Group") +
+  theme_minimal()
+
+# 6. Focusing only on the time period from 1970 to 1990, regress log sales on log prices to estimate the price elasticity of demand over that period. Interpret your results.
+
+## Filter data for 1970-1990 and drop missing values
+demand_data <- final.data %>%
+  filter(Year >= 1970 & Year <= 1990) %>%
+  select(sales_per_capita, price_real) %>%
+  drop_na()
+
+## Take natural logs
+demand_data <- demand_data %>%
+  mutate(log_sales = log(sales_per_capita),
+         log_price = log(price_real))
+
+## Run the regression
+demand_model <- lm(log_sales ~ log_price, data = demand_data)
+
+## Print the summary of the regression
+summary(demand_model)
+
+## Interpretation: Based on this regression, we conclude that the demand for cigarettes is inelastic. A 1% increase in price would result in a 0.81% decrease in sales.
+
+# 7. Again limiting to 1970 to 1990, regress log sales on log prices using the total (federal and state) cigarette tax (in dollars) as an instrument for log prices. Interpret your results and compare your estimates to those without an instrument. Are they different? If so, why?
+
+library(ivreg)  # Load the package for instrumental variables regression
+
+## Filter data for 1970-1990 and remove missing values
+iv_data <- final.data %>%
+  filter(Year >= 1970 & Year <= 1990) %>%
+  select(sales_per_capita, price_real, tax_dollar) %>%
+  drop_na()
+
+## Take natural logs
+iv_data <- iv_data %>%
+  mutate(log_sales = log(sales_per_capita),
+         log_price = log(price_real),
+         log_tax = log(tax_dollar))
+
+## Run the IV regression using tax as an instrument for price
+iv_model <- ivreg(log_sales ~ log_price | log_tax, data = iv_data)
+
+## Print regression summary
+summary(iv_model)
