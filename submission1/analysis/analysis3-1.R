@@ -25,4 +25,98 @@ ggplot(change_proportions, aes(x = Year, y = proportion)) +
 
 # 2. Plot on a single graph the average tax (in 2012 dollars) on cigarettes and the average price of a pack of cigarettes from 1970 to 2018.
 
-##
+## Get the CPI value for 2012
+cpi_2012 <- cpi.data %>% filter(Year == 2012) %>% pull(index)
+
+## Convert tax and price to 2012 dollars
+final.data <- final.data %>%
+  mutate(price_real = cost_per_pack * (cpi_2012/index),
+         tax_real = tax_dollar * (cpi_2012/index))
+
+## Filter for years 1970 to 2018
+plot.data <- final.data %>%
+  filter(Year >= 1970 & Year <= 2018) %>%
+  group_by(Year) %>%
+  summarize(avg_tax = mean(tax_real, na.rm = TRUE),
+            avg_price = mean(price_real, na.rm = TRUE))
+
+## Plot the data
+library(ggplot2)
+
+ggplot(plot.data, aes(x = Year)) +
+  geom_line(aes(y = avg_tax, color = "Average Tax (2012$)"), size = 1.2) +
+  geom_line(aes(y = avg_price, color = "Average Price (2012$)"), size = 1.2) +
+  labs(title = "Average Tax and Price of Cigarettes (1970-2018, Adjusted to 2012$)",
+       x = "Year",
+       y = "Dollars (2012 Adjusted)",
+       color = "Legend") +
+  theme_minimal()
+
+# 3. Identify the 5 states with the highest increases in cigarette prices (in dollars) over the time period. Plot the average number of packs sold per capita for those states from 1970 to 2018.
+
+## Ensure 'Year' is an integer
+final.data <- final.data %>%
+  mutate(Year = as.integer(Year))
+
+## Calculate price difference (2012 dollars)
+price_diff <- final.data %>%
+  filter(Year %in% c(1970, 2018)) %>%
+  select(state, Year, price_real) %>%
+  pivot_wider(names_from = Year, values_from = price_real, names_prefix = "Year_") %>%
+  mutate(price_increase = Year_2018 - Year_1970) %>%
+  arrange(desc(price_increase))
+
+## Identify the top 5 states with the highest price increase
+top_5_states <- price_diff %>%
+  slice_max(order_by = price_increase, n = 5) %>%
+  pull(state)
+
+## Filter data for these 5 states and sales per capita
+sales_data <- final.data %>%
+  filter(state %in% top_5_states, Year >= 1970 & Year <= 2018) %>%
+  select(state, Year, sales_per_capita)
+
+## Plot the sales per capita for these states
+ggplot(sales_data, aes(x = Year, y = sales_per_capita, color = state)) +
+  geom_line(size = 1.2) +
+  labs(title = "Average Packs Sold Per Capita (1970-2018)",
+       subtitle = "For the 5 States with the Highest Increase in Cigarette Prices",
+       x = "Year",
+       y = "Packs Sold Per Capita",
+       color = "State") +
+  theme_minimal()
+
+# 4. Identify the 5 states with the lowest increases in cigarette prices over the time period. Plot the average number of packs sold per capita for those states from 1970 to 2018.
+
+## Ensure 'Year' is an integer
+final.data <- final.data %>%
+  mutate(Year = as.integer(Year))
+
+## Calculate price difference (2012 dollars)
+price_diff <- final.data %>%
+  filter(Year %in% c(1970, 2018)) %>%
+  select(state, Year, price_real) %>%
+  pivot_wider(names_from = Year, values_from = price_real, names_prefix = "Year_") %>%
+  mutate(price_increase = Year_2018 - Year_1970) %>%
+  arrange(price_increase)  # Sort in ascending order
+
+## Identify the 5 states with the lowest price increase
+bottom_5_states <- price_diff %>%
+  slice_min(order_by = price_increase, n = 5) %>%
+  pull(state)
+
+## Filter data for these 5 states and sales per capita
+sales_data <- final.data %>%
+  filter(state %in% bottom_5_states, Year >= 1970 & Year <= 2018) %>%
+  select(state, Year, sales_per_capita)
+
+## Plot the sales per capita for these states
+ggplot(sales_data, aes(x = Year, y = sales_per_capita, color = state)) +
+  geom_line(size = 1.2) +
+  labs(title = "Average Packs Sold Per Capita (1970-2018)",
+       subtitle = "For the 5 States with the Lowest Increase in Cigarette Prices",
+       x = "Year",
+       y = "Packs Sold Per Capita",
+       color = "State") +
+  theme_minimal()
+
