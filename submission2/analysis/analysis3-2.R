@@ -177,7 +177,7 @@ iv.data <- final.data %>%
 filter(Year >= 1970 & Year <= 1990)%>%
   mutate(ln_sales = log(sales_per_capita),
          ln_price = log(price_cpi),
-         ln_total_tax = log(tax_dollar))
+         ln_total_tax = log(tax_real))
 
 ## Run the IV regression using feols() from fixest
 ivs <- feols(ln_sales ~ 1 | ln_price ~ ln_total_tax, data = iv.data)
@@ -211,7 +211,7 @@ demand_data <- demand_data %>%
          log_price = log(price_real))
 
 ## Run the regression
-demand_model <- lm(log_sales ~ log_price, data = demand_data)
+demand_model2 <- lm(log_sales ~ log_price, data = demand_data)
 
 ## Print the summary of the regression
 summary(demand_model)
@@ -221,20 +221,94 @@ iv.data2 <- final.data %>%
 filter(Year >= 1991 & Year <= 2015)%>%
   mutate(ln_sales = log(sales_per_capita),
          ln_price = log(price_cpi),
-         ln_total_tax = log(tax_dollar))
+         ln_total_tax = log(tax_real))
 
 ## Run the IV regression using feols() from fixest
-ivs <- feols(ln_sales ~ 1 | ln_price ~ ln_total_tax, data = iv.data2)
+ivs2 <- feols(ln_sales ~ 1 | ln_price ~ ln_total_tax, data = iv.data2)
 
 ## Display results
 summary(ivs)
 
 ## First-Stage Regression: Predicting ln_price using ln_total_tax
-first_stage <- feols(ln_price ~ ln_total_tax, data = iv.data2)
+first_stage2 <- feols(ln_price ~ ln_total_tax, data = iv.data2)
 summary(first_stage)
 
 ## Reduced-Form Regression: Direct effect of ln_total_tax on ln_sales
-reduced_form <- feols(ln_sales ~ ln_total_tax, data = iv.data2)
+reduced_form2 <- feols(ln_sales ~ ln_total_tax, data = iv.data2)
 summary(reduced_form)
+
+# making a table 
+
+install.packages("modelsummary")
+install.packages("kableExtra")
+install.packages("tidyverse")
+
+library(modelsummary)
+library(kableExtra)
+library(tidyverse)
+
+# Extract coefficient names dynamically
+coef_names <- unique(c(
+  names(coef(demand_model)), 
+  names(coef(ivs)), 
+  names(coef(demand_model2)), 
+  names(coef(ivs2)), 
+  names(coef(first_stage)), 
+  names(coef(first_stage2)), 
+  names(coef(reduced_form)), 
+  names(coef(reduced_form2))
+))
+
+# Define coefficient mappings dynamically
+coef_map <- setNames(coef_names, coef_names)
+coef_map["log_price"] <- "Log Price"
+coef_map["log_tax"] <- "Log Tax"
+
+# Create a list of regression models
+models <- list(
+  "OLS (1970-1990)" = demand_model,
+  "IV (1970-1990)" = ivs,
+  "OLS (1991-2015)" = demand_model2,
+  "IV (1991-2015)" = ivs2
+)
+
+# First-stage and reduced-form models
+first_stage_models <- list(
+  "First Stage (1970-1990)" = first_stage,
+  "First Stage (1991-2015)" = first_stage2
+)
+
+reduced_form_models <- list(
+  "Reduced Form (1970-1990)" = reduced_form,
+  "Reduced Form (1991-2015)" = reduced_form2
+)
+
+# Convert each set of regressions into a formatted table
+main_table <- modelsummary(models, 
+             gof_omit = "IC|Log|Adj|RMSE",
+             coef_map = coef_map,
+             output = "data.frame") 
+
+first_stage_table <- modelsummary(first_stage_models, 
+             gof_omit = "IC|Log|Adj|RMSE",
+             coef_map = coef_map,
+             output = "data.frame")
+
+reduced_form_table <- modelsummary(reduced_form_models, 
+             gof_omit = "IC|Log|Adj|RMSE",
+             coef_map = coef_map,
+             output = "data.frame")
+
+# Combine tables into one
+full_table <- rbind(
+  main_table,
+  data.frame(term = "Reduced Form", reduced_form_table),
+  data.frame(term = "First Stage", first_stage_table)
+)
+
+# Format table with headers
+kable(full_table, format = "html", align = "c") %>%
+  kable_styling(full_width = F, bootstrap_options = c("striped", "hover")) %>%
+  add_header_above(c(" " = 1, "1970-1990" = 2, "1991-2015" = 2))
 
 save.image("submission2/Hwk3_workspace.Rdata")
