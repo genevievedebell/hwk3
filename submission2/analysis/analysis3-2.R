@@ -238,6 +238,3 @@ reduced_form <- feols(ln_sales ~ ln_total_tax, data = iv.data2)
 summary(reduced_form)
 
 save.image("submission2/Hwk3_workspace.Rdata")
-
-file.exists("submission2/results/Hwk3_workspace.Rdata")
-file.exists("submission2/results/Hwk3datacode_workspace.Rdata")

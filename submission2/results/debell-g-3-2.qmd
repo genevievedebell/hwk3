@@ -23,8 +23,8 @@ pacman::p_load(tidyverse, ggplot2, dplyr, lubridate, readr, readxl, hrbrthemes, 
 ```{r}
 #| include: false
 #| eval: true
-load("submission2/results/Hwk3_workspace.Rdata")
-load("submission2/results/Hwk3datacode_workspace.Rdata")
+load("submission2/Hwk3_workspace.Rdata")
+load("submission2/Hwk3datacode_workspace.Rdata")
 ```
 
 My answers to the homework questions are described below. The GitHub repository for this work is available [here](https://github.com/genevievedebell/hwk3). Enjoy!
