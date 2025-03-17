@@ -312,3 +312,4 @@ kable(full_table, format = "html", align = "c") %>%
   add_header_above(c(" " = 1, "1970-1990" = 2, "1991-2015" = 2))
 
 save.image("submission2/Hwk3_workspace.Rdata")
+
