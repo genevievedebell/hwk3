@@ -18,16 +18,24 @@ if (!require("pacman")) install.packages("pacman")
 pacman::p_load(tidyverse, ggplot2, dplyr, lubridate, readr, readxl, hrbrthemes, fixest,
                scales, gganimate, gapminder, gifski, png, tufte, plotly, OECD,
                ggrepel, survey, foreign, devtools, pdftools, kableExtra, modelsummary,
-               kableExtra)
+               kableExtra, tinytex)
 ```
 ```{r}
-#| include: false
-#| eval: true 
+# Safer way to load the workspace file
+if (file.exists("submission2/Hwk3_workspace.RData")) {
+    load("submission2/Hwk3_workspace.RData")
+    print("Workspace successfully loaded.")
+} else {
+    print("Workspace file not found, skipping load.")
+}
 
-
-
+if (file.exists("submission2/Hwk3datacode_workspace.RData")) {
+    load("submission2/Hwk3datacode_workspace.RData")
+    print("Data code workspace successfully loaded.")
+} else {
+    print("Data code workspace file not found, skipping load.")
+}
 ```
-
 My answers to the homework questions are described below. The GitHub repository for this work is available [here](https://github.com/genevievedebell/hwk3). Enjoy!
 
 # 1. Present a bar graph showing the proportion of states with a change in their cigarette tax in each year from 1970 to 1985.
