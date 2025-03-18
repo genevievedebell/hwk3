@@ -21,20 +21,11 @@ pacman::p_load(tidyverse, ggplot2, dplyr, lubridate, readr, readxl, hrbrthemes, 
                kableExtra, tinytex)
 ```
 ```{r}
-# Safer way to load the workspace file
-if (file.exists("submission2/Hwk3_workspace.RData")) {
-    load("submission2/Hwk3_workspace.RData")
-    print("Workspace successfully loaded.")
-} else {
-    print("Workspace file not found, skipping load.")
-}
+#| include: false
+#| eval: true 
+load("Hwk3_workspace.RData")
+load("Hwk3datacode_workspace.RData")
 
-if (file.exists("submission2/Hwk3datacode_workspace.RData")) {
-    load("submission2/Hwk3datacode_workspace.RData")
-    print("Data code workspace successfully loaded.")
-} else {
-    print("Data code workspace file not found, skipping load.")
-}
 ```
 My answers to the homework questions are described below. The GitHub repository for this work is available [here](https://github.com/genevievedebell/hwk3). Enjoy!
 
