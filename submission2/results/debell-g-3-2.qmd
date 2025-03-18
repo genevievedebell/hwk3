@@ -5,7 +5,7 @@ author: "Genevieve DeBell"
 format:
   pdf:
     output-file: "debell-g-hwk3-2"
-    output-ext:  "pdf"
+    output-ext:  "html"
     header-includes:
       - \usepackage{float}
       - \floatplacement{table}{H}
@@ -27,6 +27,7 @@ load("submission2/Hwk3_workspace.RData")
 load("submission2/Hwk3datacode_workspace.RData")
 
 ```
+
 My answers to the homework questions are described below. The GitHub repository for this work is available [here](https://github.com/genevievedebell/hwk3). Enjoy!
 
 # 1. Present a bar graph showing the proportion of states with a change in their cigarette tax in each year from 1970 to 1985.

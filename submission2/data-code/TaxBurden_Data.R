@@ -66,8 +66,4 @@ final.data <- final.data %>%
 write_tsv(final.data,"data/output/TaxBurden_Data.txt",append=FALSE,col_names=TRUE)
 write_rds(final.data,"data/output/TaxBurden_Data.rds")
 
-
-file.remove("Hwk3datacode_workspace.Rdata")  # Delete it
 save.image("submission2/Hwk3datacode_workspace.Rdata")
-
-

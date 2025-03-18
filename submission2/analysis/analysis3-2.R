@@ -120,6 +120,8 @@ ggplot(sales_data, aes(x = Year, y = sales_per_capita, color = state)) +
        color = "State") +
   theme_minimal()
 
+
+
 # 5. Compare the trends in sales from the 5 states with the highest price increases to those with the lowest price increases.
 
 ## Filter sales data for the top 5 and bottom 5 states
@@ -237,5 +239,4 @@ summary(first_stage)
 reduced_form2 <- feols(ln_sales ~ ln_total_tax, data = iv.data2)
 summary(reduced_form)
 
-file.remove("Hwk3_workspace.Rdata")  # Delete it
 save.image("submission2/Hwk3_workspace.Rdata")
