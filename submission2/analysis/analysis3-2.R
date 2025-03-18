@@ -237,4 +237,5 @@ summary(first_stage)
 reduced_form2 <- feols(ln_sales ~ ln_total_tax, data = iv.data2)
 summary(reduced_form)
 
-save.image("Hwk3_workspace.RData")
+file.remove("Hwk3_workspace.Rdata")  # Delete it
+save.image("submission2/Hwk3_workspace.Rdata")

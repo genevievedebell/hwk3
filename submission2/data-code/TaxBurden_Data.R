@@ -67,6 +67,7 @@ write_tsv(final.data,"data/output/TaxBurden_Data.txt",append=FALSE,col_names=TRU
 write_rds(final.data,"data/output/TaxBurden_Data.rds")
 
 
-save.image("Hwk3datacode_workspace.RData")
+file.remove("Hwk3datacode_workspace.Rdata")  # Delete it
+save.image("submission2/Hwk3datacode_workspace.Rdata")
 
 
