@@ -240,3 +240,6 @@ reduced_form2 <- feols(ln_sales ~ ln_total_tax, data = iv.data2)
 summary(reduced_form)
 
 save.image("submission2/Hwk3_workspace.Rdata")
+
+dir.exists("C:/Users/genevievedebell/Documents/GitHub/hwk3/submission_2")
+getwd()

@@ -23,8 +23,9 @@ pacman::p_load(tidyverse, ggplot2, dplyr, lubridate, readr, readxl, hrbrthemes, 
 ```{r}
 #| include: false
 #| eval: true 
+setwd("/Users/genevievedebell/Documents/GitHub/hwk3")
+
 load("submission2/Hwk3_workspace.Rdata")
-load("submission2/Hwk3datacode_workspace.Rdata")
 
 ```
 
@@ -162,5 +163,133 @@ ggplot(sales_data, aes(x = Year, y = sales_per_capita, color = state)) +
        y = "Packs Sold Per Capita",
        color = "State") +
   theme_minimal()
+```
+
+# 5. Compare the trends in sales from the 5 states with the highest price increases to those with the lowest price increases.
+
+```{r}
+#| echo: false
+## Filter sales data for the top 5 and bottom 5 states
+sales_data_top <- final.data %>%
+  filter(state %in% top_5_states, Year >= 1970 & Year <= 2018) %>%
+  group_by(Year) %>%
+  summarize(avg_sales_top = mean(sales_per_capita, na.rm = TRUE))
+
+sales_data_bottom <- final.data %>%
+  filter(state %in% bottom_5_states, Year >= 1970 & Year <= 2018) %>%
+  group_by(Year) %>%
+  summarize(avg_sales_bottom = mean(sales_per_capita, na.rm = TRUE))
+
+## Merge datasets for plotting
+sales_comparison <- left_join(sales_data_top, sales_data_bottom, by = "Year")
+
+## Plot the trends for both groups
+ggplot(sales_comparison, aes(x = Year)) +
+  geom_line(aes(y = avg_sales_top, color = "Top 5 States (Highest Price Increase)"), size = 1.2) +
+  geom_line(aes(y = avg_sales_bottom, color = "Bottom 5 States (Lowest Price Increase)"), size = 1.2) +
+  labs(title = "Comparison of Cigarette Sales in States with High vs. Low Price Increases",
+       subtitle = "Average Packs Sold Per Capita (1970-2018)",
+       x = "Year",
+       y = "Packs Sold Per Capita",
+       color = "State Group") +
+  theme_minimal()
+```
+
+# 6. Focusing only on the time period from 1970 to 1990, regress log sales on log prices to estimate the price elasticity of demand over that period. Interpret your results.
+```{r}
+#| echo: false
+## Filter data for 1970-1990 and drop missing values
+demand_data <- final.data %>%
+  filter(Year >= 1970 & Year <= 1990) %>%
+  select(sales_per_capita, price_real) %>%
+  drop_na()
+
+## Take natural logs
+demand_data <- demand_data %>%
+  mutate(log_sales = log(sales_per_capita),
+         log_price = log(price_real))
+
+## Run the regression
+demand_model <- lm(log_sales ~ log_price, data = demand_data)
+
+## Print the summary of the regression
+summary(demand_model)
+
+## Interpretation: Based on this regression, we conclude that the demand for cigarettes is inelastic. A 1% increase in price would result in a 0.81% decrease in sales.
+```
+
+# 7. Again limiting to 1970 to 1990, regress log sales on log prices using the total (federal and state) cigarette tax (in dollars) as an instrument for log prices. Interpret your results and compare your estimates to those without an instrument. Are they different? If so, why?
+```{r}
+#| echo: false
+library(fixest)
+
+## Create log-transformed variables
+iv.data <- final.data %>%
+filter(Year >= 1970 & Year <= 1990)%>%
+  mutate(ln_sales = log(sales_per_capita),
+         ln_price = log(price_cpi),
+         ln_total_tax = log(tax_real))
+
+## Run the IV regression using feols() from fixest
+ivs <- feols(ln_sales ~ 1 | ln_price ~ ln_total_tax, data = iv.data)
+
+## Display results
+summary(ivs)
+```
+
+# 8. Show the first stage and reduced-form results from the instrument.
+```{r}
+#| echo: false
+library(fixest)
+
+## First-Stage Regression: Predicting ln_price using ln_total_tax
+first_stage <- feols(ln_price ~ ln_total_tax, data = iv.data)
+summary(first_stage)
+
+## Reduced-Form Regression: Direct effect of ln_total_tax on ln_sales
+reduced_form <- feols(ln_sales ~ ln_total_tax, data = iv.data)
+summary(reduced_form)
+```
+
+# 9. Repeat questions 6-8 focusing on the period from 1991 to 2015.
+```{r}
+#| echo: false
+## Filter data for 1991-2015 and drop missing values
+demand_data <- final.data %>%
+  filter(Year >= 1991 & Year <= 2015) %>%
+  select(sales_per_capita, price_real) %>%
+  drop_na()
+
+## Take natural logs
+demand_data <- demand_data %>%
+  mutate(log_sales = log(sales_per_capita),
+         log_price = log(price_real))
+
+## Run the regression
+demand_model2 <- lm(log_sales ~ log_price, data = demand_data)
+
+## Print the summary of the regression
+summary(demand_model)
+
+## Create log-transformed variables
+iv.data2 <- final.data %>%
+filter(Year >= 1991 & Year <= 2015)%>%
+  mutate(ln_sales = log(sales_per_capita),
+         ln_price = log(price_cpi),
+         ln_total_tax = log(tax_real))
+
+## Run the IV regression using feols() from fixest
+ivs2 <- feols(ln_sales ~ 1 | ln_price ~ ln_total_tax, data = iv.data2)
+
+## Display results
+summary(ivs)
+
+## First-Stage Regression: Predicting ln_price using ln_total_tax
+first_stage2 <- feols(ln_price ~ ln_total_tax, data = iv.data2)
+summary(first_stage)
+
+## Reduced-Form Regression: Direct effect of ln_total_tax on ln_sales
+reduced_form2 <- feols(ln_sales ~ ln_total_tax, data = iv.data2)
+summary(reduced_form)
 ```
 
