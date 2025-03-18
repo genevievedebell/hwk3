@@ -5,7 +5,7 @@ author: "Genevieve DeBell"
 format:
   pdf:
     output-file: "debell-g-hwk3-2"
-    output-ext:  "html"
+    output-ext:  "pdf"
     header-includes:
       - \usepackage{float}
       - \floatplacement{table}{H}
@@ -23,8 +23,8 @@ pacman::p_load(tidyverse, ggplot2, dplyr, lubridate, readr, readxl, hrbrthemes, 
 ```{r}
 #| include: false
 #| eval: true 
-load("submission2/Hwk3_workspace.RData")
-load("submission2/Hwk3datacode_workspace.RData")
+load("submission2/Hwk3_workspace.Rdata")
+load("submission2/Hwk3datacode_workspace.Rdata")
 
 ```
 
