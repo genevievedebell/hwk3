@@ -247,35 +247,47 @@ install.packages("gt")
 library(modelsummary)
 library(gt)
 
-# Create a custom coefficient mapping
+f <- function(x) formatC(x, digits = 0, big.mark = ",", format = "f")
+
+# Create a properly named list to avoid duplicate names in "Reduced Form" and "First Stage"
+models <- list(
+  "Estimates" = list(
+    "OLS (1970-1990)" = demand_model,
+    "IV (1970-1990)" = ivs,
+    "OLS (1991-2015)" = demand_model2,
+    "IV (1991-2015)" = ivs2
+  ),
+  "Reduced Form" = setNames(
+    list(reduced_form, reduced_form2), 
+    c("1970-1990", "1991-2015")
+  ),
+  "First Stage" = setNames(
+    list(first_stage, first_stage2), 
+    c("1970-1990", "1991-2015")
+  )
+)
+
+# Mapping for coefficients
 coef_map <- c(
   "log_price" = "Log Price",
-  "fit_ln_price" = "Log Price",  # Map IV instrumented log price correctly
-  "ln_total_tax" = "Total Tax"
+  "fit_ln_price" = "Log Price",  # Align IV variable with Log Price
+  "ln_total_tax" = "Log Tax"
 )
 
-# Create a list of models for a cleaner table
-models <- list(
-  "OLS" = demand_model,
-  "IV" = ivs,
-  "OLS" = demand_model2,
-  "IV" = ivs2
+# Goodness-of-fit statistics mapping
+gof_map <- list(
+  list("raw" = "nobs", "clean" = "N", "fmt" = f),
+  list("raw" = "r.squared", "clean" = "R²", "fmt" = function(x) formatC(x, digits = 3, format = "f"))
 )
 
-# Generate a formatted table
+# Generate the table
 modelsummary(models,
-             fmt = 3,  # 3 decimal places
-             statistic = "({std.error})",  # Show standard errors in parentheses
-             stars = TRUE,  # Significance stars
-             coef_map = coef_map,  # Rename coefficients
-             coef_omit = "Intercept",  # Remove intercept
-             gof_omit = "IC|Adj|Log|RMSE",  # Remove extra goodness-of-fit statistics
-             output = "gt") %>%
-  tab_header(
-    title = "Regression Estimates (OLS & IV)",
-    subtitle = "1970-1990 and 1991-2015"
-  ) %>%
-  tab_options(table.font.size = "medium")
+        shape = "rbind",
+        coef_map = coef_map,
+        gof_map = gof_map,
+        output = "kableExtra") %>%
+  add_header_above(c(""=1, "1970-1990"=2, "1991-2015"=2)) %>%
+  kable_styling(latex_options = "hold_position")
 
 save.image("submission3/Hwk3_workspace.Rdata")
 
