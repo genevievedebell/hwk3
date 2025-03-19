@@ -249,7 +249,7 @@ library(kableExtra)
 # Formatting function for numbers
 f <- function(x) formatC(x, digits = 0, big.mark = ",", format = "f")
 
-# Define models (ensuring only 4 columns)
+# Define models (ensuring only 4 columns, without years next to OLS and IV)
 models <- list(
   "Estimates" = list(
     "OLS" = demand_model,
@@ -280,20 +280,25 @@ gof_map <- list(
   list("raw" = "r.squared", "clean" = "R²", "fmt" = function(x) formatC(x, digits = 3, format = "f"))
 )
 
-# Generate the table
-table_output <- modelsummary(models,
+# Generate the table as a data frame first
+table_df <- modelsummary(models,
         shape = "rbind",
         coef_map = coef_map,
         gof_map = gof_map,
-        output = "kableExtra") 
+        output = "data.frame")  # Convert to a data frame
 
-# Fix column names to remove unwanted spaces/HTML artifacts
-colnames(table_output) <- gsub("&nbsp;", "", colnames(table_output))
+# Fix column names (remove `&nbsp;` and clean IV labels)
+colnames(table_df) <- gsub("&nbsp;", "", colnames(table_df))  
+colnames(table_df) <- gsub("IV ", "IV", colnames(table_df))  
 
-# Add title, headers, and ensure proper formatting
-table_output %>%
-  add_header_above(c("Elasticity Estimates" = 5)) %>%  # Title spanning all columns
+# Convert back to `kableExtra` and format it properly
+table_output <- kable(table_df, format = "latex", booktabs = TRUE, escape = FALSE) %>%
+  add_header_above(c("**Elasticity Estimates**" = 5)) %>%  # Title spanning all columns
+  add_header_above(c(" " = 1, "**1970-1990**" = 2, "**1991-2015**" = 2)) %>%  # Only years in the header
   kable_styling(latex_options = c("hold_position", "scale_down"))  # Ensure proper fit
+
+# Print the final table so it appears in Quarto output
+table_output
 
 save.image("submission3/Hwk3_workspace.Rdata")
 
