@@ -239,54 +239,45 @@ summary(first_stage)
 reduced_form2 <- feols(ln_sales ~ ln_total_tax, data = iv.data2)
 summary(reduced_form)
 
-# Load necessary libraries
-library(tibble)
-library(kableExtra)
+# Install necessary packages if not already installed
+install.packages("modelsummary")
+install.packages("gt")
 
-# Create a table calling each regression
-results_table <- tibble(
-  Metric = c("Estimate", "Reduced Form", "First Stage", "N", "R-squared"),
-  
-  `1970-1990_OLS` = c(
-    coef(demand_model)["log_price"], 
-    coef(reduced_form)["ln_total_tax"], 
-    coef(first_stage)["ln_total_tax"], 
-    nobs(demand_model), 
-    summary(demand_model)$r.squared
-  ),
-  
-  `1970-1990_IV` = c(
-    coef(ivs)["fit_ln_price"], 
-    NA, 
-    NA, 
-    nobs(ivs), 
-    NA  # IV regressions typically don't have R-squared values
-  ),
-  
-  `1991-2015_OLS` = c(
-    coef(demand_model2)["log_price"], 
-    coef(reduced_form2)["ln_total_tax"], 
-    coef(first_stage2)["ln_total_tax"], 
-    nobs(demand_model2), 
-    summary(demand_model2)$r.squared
-  ),
-  
-  `1991-2015_IV` = c(
-    coef(ivs2)["fit_ln_price"], 
-    NA, 
-    NA, 
-    nobs(ivs2), 
-    NA  # IV regression does not return R-squared
-  )
+# Load libraries
+library(modelsummary)
+library(gt)
+
+# Create a custom coefficient mapping
+coef_map <- c(
+  "log_price" = "Log Price",
+  "fit_ln_price" = "Log Price",  # Map IV instrumented log price correctly
+  "ln_total_tax" = "Total Tax"
 )
 
-# Format and group columns
-kable(results_table, format = "html", caption = "Regression Estimates (OLS & IV)") %>%
-  kable_styling(full_width = F, bootstrap_options = c("striped", "hover")) %>%
-  add_header_above(c(" " = 1, "1970-1990" = 2, "1991-2015" = 2)) %>%
-  column_spec(2:5, width = "10em")
-  
-save.image("submission2/Hwk3_workspace.Rdata")
+# Create a list of models for a cleaner table
+models <- list(
+  "OLS" = demand_model,
+  "IV" = ivs,
+  "OLS" = demand_model2,
+  "IV" = ivs2
+)
+
+# Generate a formatted table
+modelsummary(models,
+             fmt = 3,  # 3 decimal places
+             statistic = "({std.error})",  # Show standard errors in parentheses
+             stars = TRUE,  # Significance stars
+             coef_map = coef_map,  # Rename coefficients
+             coef_omit = "Intercept",  # Remove intercept
+             gof_omit = "IC|Adj|Log|RMSE",  # Remove extra goodness-of-fit statistics
+             output = "gt") %>%
+  tab_header(
+    title = "Regression Estimates (OLS & IV)",
+    subtitle = "1970-1990 and 1991-2015"
+  ) %>%
+  tab_options(table.font.size = "medium")
+
+save.image("submission3/Hwk3_workspace.Rdata")
 
 dir.exists("C:/Users/genevievedebell/Documents/GitHub/hwk3/submission_2")
 getwd()

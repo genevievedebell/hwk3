@@ -18,13 +18,13 @@ if (!require("pacman")) install.packages("pacman")
 pacman::p_load(tidyverse, ggplot2, dplyr, lubridate, readr, readxl, hrbrthemes, fixest,
                scales, gganimate, gapminder, gifski, png, tufte, plotly, OECD,
                ggrepel, survey, foreign, devtools, pdftools, kableExtra, modelsummary,
-               kableExtra, tinytex)
+               kableExtra, tinytex, gt, modelsummary)
 ```
 ```{r}
 #| include: false
 #| eval: true 
-setwd("/Users/genevievedebell/Documents/GitHub/hwk3")
 
+setwd("/Users/genevievedebell/Documents/GitHub/hwk3")
 load("submission3/Hwk3_workspace.Rdata")
 
 ```
@@ -195,9 +195,9 @@ ggplot(sales_comparison, aes(x = Year)) +
   theme_minimal()
 ```
 
-# 6. Focusing only on the time period from 1970 to 1990, regress log sales on log prices to estimate the price elasticity of demand over that period. Interpret your results.
 ```{r}
 #| echo: false
+#| include: false
 ## Filter data for 1970-1990 and drop missing values
 demand_data <- final.data %>%
   filter(Year >= 1970 & Year <= 1990) %>%
@@ -218,9 +218,10 @@ summary(demand_model)
 ## Interpretation: Based on this regression, we conclude that the demand for cigarettes is inelastic. A 1% increase in price would result in a 0.81% decrease in sales.
 ```
 
-# 7. Again limiting to 1970 to 1990, regress log sales on log prices using the total (federal and state) cigarette tax (in dollars) as an instrument for log prices. Interpret your results and compare your estimates to those without an instrument. Are they different? If so, why?
+
 ```{r}
 #| echo: false
+#| include: false
 library(fixest)
 
 ## Create log-transformed variables
@@ -237,9 +238,9 @@ ivs <- feols(ln_sales ~ 1 | ln_price ~ ln_total_tax, data = iv.data)
 summary(ivs)
 ```
 
-# 8. Show the first stage and reduced-form results from the instrument.
 ```{r}
 #| echo: false
+#| include: false
 library(fixest)
 
 ## First-Stage Regression: Predicting ln_price using ln_total_tax
@@ -251,8 +252,8 @@ reduced_form <- feols(ln_sales ~ ln_total_tax, data = iv.data)
 summary(reduced_form)
 ```
 
-# 9. Repeat questions 6-8 focusing on the period from 1991 to 2015.
 ```{r}
+#| include: false
 #| echo: false
 ## Filter data for 1991-2015 and drop missing values
 demand_data <- final.data %>%
@@ -293,3 +294,42 @@ reduced_form2 <- feols(ln_sales ~ ln_total_tax, data = iv.data2)
 summary(reduced_form)
 ```
 
+# 6-9. The estimates for the regressions run in questions 6-9 are shown in the table below. 
+```{r}
+#| echo: false
+# Create a custom coefficient mapping
+coef_map <- c(
+  "log_price" = "Log Price",
+  "fit_ln_price" = "Log Price",  # Map IV instrumented log price correctly
+  "ln_total_tax" = "Total Tax"
+)
+
+# Create a list of models for a cleaner table
+models <- list(
+  "OLS" = demand_model,
+  "IV" = ivs,
+  "OLS" = demand_model2,
+  "IV" = ivs2
+)
+
+# Generate a formatted table
+modelsummary(models,
+             fmt = 3,  # 3 decimal places
+             statistic = "({std.error})",  # Show standard errors in parentheses
+             stars = TRUE,  # Significance stars
+             coef_map = coef_map,  # Rename coefficients
+             coef_omit = "Intercept",  # Remove intercept
+             gof_omit = "IC|Adj|Log|RMSE",  # Remove extra goodness-of-fit statistics
+             output = "gt") %>%
+  tab_header(
+    title = "Regression Estimates (OLS & IV)",
+    subtitle = "1970-1990 and 1991-2015"
+  ) %>%
+  tab_options(table.font.size = "medium")
+```
+
+# 10. Compare your elasticity estimates from 1970-1990 versus those from 1991-2015. Are they different? If so, why?
+
+```{r}
+
+```
