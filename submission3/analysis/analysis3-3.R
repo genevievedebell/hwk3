@@ -76,6 +76,8 @@ sales_data <- final.data %>%
   filter(state %in% top_5_states, Year >= 1970 & Year <= 2018) %>%
   select(state, Year, sales_per_capita)
 
+
+
 ## Plot the sales per capita for these states
 ggplot(sales_data, aes(x = Year, y = sales_per_capita, color = state)) +
   geom_line(size = 1.2) +
@@ -237,40 +239,38 @@ summary(first_stage)
 
 ## Reduced-Form Regression: Direct effect of ln_total_tax on ln_sales
 reduced_form2 <- feols(ln_sales ~ ln_total_tax, data = iv.data2)
+
 summary(reduced_form)
 
-# Install necessary packages if not already installed
-install.packages("modelsummary")
-install.packages("gt")
-
-# Load libraries
+# Load necessary libraries
 library(modelsummary)
-library(gt)
+library(kableExtra)
 
+# Formatting function for numbers
 f <- function(x) formatC(x, digits = 0, big.mark = ",", format = "f")
 
-# Create a properly named list to avoid duplicate names in "Reduced Form" and "First Stage"
+# Define models (ensuring only 4 columns)
 models <- list(
   "Estimates" = list(
-    "OLS (1970-1990)" = demand_model,
-    "IV (1970-1990)" = ivs,
-    "OLS (1991-2015)" = demand_model2,
-    "IV (1991-2015)" = ivs2
+    "OLS" = demand_model,
+    "IV" = ivs,
+    "OLS" = demand_model2,
+    "IV" = ivs2
   ),
-  "Reduced Form" = setNames(
-    list(reduced_form, reduced_form2), 
-    c("1970-1990", "1991-2015")
+  "Reduced Form" = list(
+    "IV" = reduced_form,
+    "IV" = reduced_form2
   ),
-  "First Stage" = setNames(
-    list(first_stage, first_stage2), 
-    c("1970-1990", "1991-2015")
+  "First Stage" = list(
+    "IV" = first_stage,
+    "IV" = first_stage2
   )
 )
 
 # Mapping for coefficients
 coef_map <- c(
   "log_price" = "Log Price",
-  "fit_ln_price" = "Log Price",  # Align IV variable with Log Price
+  "fit_ln_price" = "Log Price",
   "ln_total_tax" = "Log Tax"
 )
 
@@ -281,13 +281,19 @@ gof_map <- list(
 )
 
 # Generate the table
-modelsummary(models,
+table_output <- modelsummary(models,
         shape = "rbind",
         coef_map = coef_map,
         gof_map = gof_map,
-        output = "kableExtra") %>%
-  add_header_above(c(""=1, "1970-1990"=2, "1991-2015"=2)) %>%
-  kable_styling(latex_options = "hold_position")
+        output = "kableExtra") 
+
+# Fix column names to remove unwanted spaces/HTML artifacts
+colnames(table_output) <- gsub("&nbsp;", "", colnames(table_output))
+
+# Add title, headers, and ensure proper formatting
+table_output %>%
+  add_header_above(c("Elasticity Estimates" = 5)) %>%  # Title spanning all columns
+  kable_styling(latex_options = c("hold_position", "scale_down"))  # Ensure proper fit
 
 save.image("submission3/Hwk3_workspace.Rdata")
 
