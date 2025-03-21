@@ -297,10 +297,13 @@ summary(reduced_form)
 # 6-9. The estimates for the regressions run in questions 6-9 are shown in the table below. 
 ```{r}
 #| echo: false
-# Formatting function for numbers
+#| results: 'asis'
+
+library(modelsummary)
+library(kableExtra)
+
 f <- function(x) formatC(x, digits = 0, big.mark = ",", format = "f")
 
-# Define models (ensuring only 4 columns, without years next to OLS and IV)
 models <- list(
   "Estimates" = list(
     "OLS" = demand_model,
@@ -318,42 +321,34 @@ models <- list(
   )
 )
 
-# Mapping for coefficients
 coef_map <- c(
   "log_price" = "Log Price",
   "fit_ln_price" = "Log Price",
   "ln_total_tax" = "Log Tax"
 )
 
-# Goodness-of-fit statistics mapping
 gof_map <- list(
   list("raw" = "nobs", "clean" = "N", "fmt" = f),
   list("raw" = "r.squared", "clean" = "R²", "fmt" = function(x) formatC(x, digits = 3, format = "f"))
 )
 
-# Generate the table as a data frame first
-table_df <- modelsummary(models,
-        shape = "rbind",
-        coef_map = coef_map,
-        gof_map = gof_map,
-        output = "data.frame")  # Convert to a data frame
+table_df <- modelsummary(models, shape = "rbind", coef_map = coef_map, gof_map = gof_map, output = "data.frame")
 
-# Fix column names (remove `&nbsp;` and clean IV labels)
 colnames(table_df) <- gsub("&nbsp;", "", colnames(table_df))  
 colnames(table_df) <- gsub("IV ", "IV", colnames(table_df))  
 
-# Convert back to `kableExtra` and format it properly
-table_output <- kable(table_df, format = "latex", booktabs = TRUE, escape = FALSE) %>%
-  add_header_above(c("**Elasticity Estimates**" = 5)) %>%  # Title spanning all columns
-  add_header_above(c(" " = 1, "**1970-1990**" = 2, "**1991-2015**" = 2)) %>%  # Only years in the header
-  kable_styling(latex_options = c("hold_position", "scale_down"))  # Ensure proper fit
+kable(table_df, format = "latex", booktabs = TRUE, escape = FALSE) %>%
+  add_header_above(c("**Elasticity Estimates**" = 5)) %>%
+  add_header_above(c(" " = 1, "**1970–1990**" = 2, "**1991–2015**" = 2)) %>%
+  kable_styling(latex_options = c("scale_down"), position = "center")
 
-# Print the final table so it appears in Quarto output
-table_output
 ```
+
+## Interpretation from Question 6: Based on this regression, we conclude that the demand for cigarettes is inelastic. A 1% increase in price would result in a 0.81% decrease in sales.
+
+## Interpretation from Question 7: Based on the IV estimate, a 1% increase in price would result in a 0.796% decrease in sales. This estimate is very similar to the estimate yielded from OLS regression, indicating that in this time period, price wasn't affected by much else besides tax, making our Log Tax instrument strong. 
+
 
 # 10. Compare your elasticity estimates from 1970-1990 versus those from 1991-2015. Are they different? If so, why?
 
-```{r}
-
-```
+## Based on these estimates, deamnd for cigarettes was more elastic in the 1991-2015 time period than between 1970 and 1990, with a 1% price increase leading to a 0.997% decrease in sales. This trend is also true of the tax increases. The reduced form estimate shows that a 1% increase in cigarette tax reduced sales by 0.207% in 1970–1990, but by 0.591% in 1991–2015. The difference in elasticity estimates between the two time periods could be due to a growing public awareness of the health risks of smoking, making consumers more responsive to price changes. 
